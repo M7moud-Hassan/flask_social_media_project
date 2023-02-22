@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField,FileField
+from wtforms import StringField, PasswordField, SubmitField,TextAreaField,SelectField
 from wtforms.validators import DataRequired, Length, Email, EqualTo,ValidationError
 from .models import Register
 class RegisterForm(FlaskForm):
@@ -61,4 +61,17 @@ class LoginForm(FlaskForm):
 	)
 	submit = SubmitField(
 		'LogIn'
+	)
+
+class PostForm(FlaskForm):
+	des= TextAreaField(
+		'description',
+		validators=[
+			DataRequired(),
+			Length(max=500)
+		]
+	)
+	privacy=SelectField(u'select privacy', choices=[(1, 'friends'), (2, 'Public'), (3, 'only me')])
+	submit = SubmitField(
+		'Push'
 	)

@@ -1,6 +1,6 @@
-from auth import db,app
+from social_app import db,app
 import sys
-from auth.models import Register
+from social_app.models import Register
 
 def create_db():
 	with app.app_context():

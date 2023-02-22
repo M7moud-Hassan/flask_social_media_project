@@ -1,6 +1,6 @@
 from itsdangerous import URLSafeTimedSerializer
 
-from auth import app
+from social_app import app
 
 def generate_confirmation_token(email):
     serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])

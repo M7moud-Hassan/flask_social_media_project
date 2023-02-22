@@ -21,15 +21,97 @@
         <ul class="navbar-nav">
           {% if title == 'index' %}
           <li class="nav-item active">
-            <a class="nav-link" href="">Login</a>
+            <a class="nav-link" href="{{ url_for('auth.index') }}">Login</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="">Rigister</a>
+            <a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
+          </li>
+          {%else%}
+          {% if title == 'register' %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('auth.index') }}">Login</a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
           </li>
           {% endif %}
+          {% endif %}
+
+          {% if title == 'home' %}
+          <li class="nav-item active">
+            <a class="nav-link" href="{{ url_for('home.home_page') }}">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="">profile</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="">friend requests</a>
+          </li>
+          {% endif %}
+
+          {% if title == 'profile' %}
+          <li class="nav-item ">
+            <a class="nav-link" href="{{ url_for('home.home_page') }}">Home</a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="">profile</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="">friend requests</a>
+          </li>
+          {% endif %}
+
+          {% if title == 'friends' %}
+          <li class="nav-item ">
+            <a class="nav-link" href="{{ url_for('home.home_page') }}">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="">profile</a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" href="">friend requests</a>
+          </li>
+          {% endif %}
+          {% if title == 'add post' %}
+        <li class="nav-item ">
+          <a class="nav-link" href="{{ url_for('home.home_page') }}">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="">profile</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="">friend requests</a>
+        </li>
+        {% endif %}
         </ul>
+        {% if title == 'home' %}
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+              modes posts
+            </a>
+            <div class="dropdown-menu">
+              <a class="dropdown-item" href="#">friends only</a>
+              <a class="dropdown-item" href="#">All posts</a>
+            </div>
+          </li>
+          <li class="nav-item ">
+            <a class="nav-link" href="{{ url_for('home.logout') }}">Logout</a>
+          </li>
+        </ul>
+        {% endif %}
+        
       </nav>
        <main>
+        {% with messages = get_flashed_messages(with_categories=True) %}
+          {% if messages %}
+            {% for category,message in messages %}
+              <div class="alert alert-{{ category }}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
         {% block content %}
         {% endblock %}
        </main>
