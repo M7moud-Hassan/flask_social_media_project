@@ -277,4 +277,12 @@ def delete_post():
             flash('delete successfull', 'success')
             return redirect(url_for('home.home_page'))
     else:
-            return render_template('post/update_post.html',title='add post',form=form,post=post)
+            return redirect(url_for('auth.index'))
+
+@home.route("/profile",methods=["GET"])
+def profile():
+    if current_user.is_authenticated:
+       image=b64encode(current_user.photo).decode("utf-8")
+       return render_template('home/profile.html',title='profile',images_user=image)
+    else:
+       return redirect(url_for('auth.index')) 
