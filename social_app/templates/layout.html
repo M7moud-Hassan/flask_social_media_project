@@ -183,5 +183,76 @@
         </div>  
         </div>  
       </footer>  
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"
+  integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA=="
+  crossorigin="anonymous"></script>
+
+      <script>
+          var socket = io();
+  socket.on('connect', function () {
+    socket.emit('init', JSON.stringify({ username: '1' }));
+  });
+  socket.on("reply", (data) => {
+    data_splits=data.split("#")
+    if(data_splits[0]=='{{current_user.id}}')
+    {
+      regWorker(data_splits[3],data_splits[1],data_splits[2]);
+    }
+
+  })
+
+         // (A) OBTAIN USER PERMISSION TO SHOW NOTIFICATION
+  window.onload = () => {
+    // (A1) ASK FOR PERMISSION
+    if (Notification.permission === "default") {
+      Notification.requestPermission().then(perm => {
+        if (Notification.permission === "granted") {
+          //regWorker('{{public_key}}').catch(err => console.error(err));
+        } else {
+          alert("Please allow notifications.");
+        }
+      });
+    }
+
+    // (A2) GRANTED
+    else if (Notification.permission === "granted") {
+     // regWorker('{{public_key}}').catch(err => console.error(err));
+    }
+
+    // (A3) DENIED
+    else { alert("Please allow notifications."); }
+  }
+  // (B) REGISTER SERVICE WORKER
+  async function regWorker(publicKey,title,body) {
+    // (B1) YOUR PUBLIC KEY - CHANGE TO YOUR OWN!
+    console.log(publicKey);
+    // (B2) REGISTER SERVICE WORKER
+    navigator.serviceWorker.register("http://127.0.0.1:5000/push.js");
+
+    // (B3) SUBSCRIBE TO PUSH SERVER
+    navigator.serviceWorker.ready
+      .then(reg => {
+        reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey:"BPc0T1X6JBbAg_JO-BMCjPoIUiwK6IV9GQkFl5UZznJSrzpH9A7c_i2oOTEiwIKteUBH4XHts1IFMvd9LAR3ZZg"
+        }).then(
+          // (B3-1) OK - TEST PUSH NOTIFICATION
+          sub => {
+            var data = new FormData();
+            data.append("sub", JSON.stringify(sub));
+            data.append("title", title);
+            data.append("body", body)
+            fetch("/push", { method: "POST", body: data })
+              .then(res => res.text())
+              .then(txt => console.log(txt))
+              .catch(err => console.error(err));
+          },
+
+          // (B3-2) ERROR!
+          err => console.error(err)
+        );
+      });
+    }
+      </script>
 </body>
 </html>

@@ -1,4 +1,5 @@
-from flask import render_template, url_for, redirect, flash,Blueprint,request
+import json
+from flask import  make_response, render_template, send_from_directory, url_for, redirect, flash,Blueprint,request
 from .forms import LoginForm,RegisterForm,PostForm
 from social_app import app,db,mail,bcrypt,socketio,emit
 from .models import Register,Post,Requests,Friends
@@ -7,6 +8,12 @@ from flask_mail import Message
 from flask_login import login_user, current_user, logout_user, login_required
 from sqlalchemy import or_
 from base64 import b64encode
+from pywebpush import webpush, WebPushException
+import json
+
+VAPID_SUBJECT = "mailto:your@email.com"
+VAPID_PRIVATE = "ZiKbrfDYXh-Ra1xAJvIbLBPcUNo5OdThWz2g2UD-g8A"
+
 auth = Blueprint(
 	'auth',
 	__name__,
@@ -17,7 +24,6 @@ home = Blueprint(
 	__name__,
 	url_prefix='/home'
 )
-
 @auth.route('/index',methods=["GET","POST"])
 @auth.route('/',methods=["GET","POST"])
 def index():
@@ -56,7 +62,7 @@ def register():
                 confirm_url = url_for('auth.confirm_email', token=token, _external=True)
                 html = render_template('auth/confirm_email.html', confirm_url=confirm_url)
                 subject = "Please confirm your email"
-                send_email(form.email.data, subject, html)
+                #send_email(form.email.data, subject, html)
                 flash('A confirmation email has been sent via email.', 'success')
                 return redirect(url_for('auth.index'))
     return render_template('auth/register.html',title='register',form=form)
@@ -90,61 +96,68 @@ def send_email(to, subject, template):
 
 @home.route("/home_page",methods=["GET","POST"])
 def home_page():
-    posts=Post.query.all()
-    for p in posts:
-        if p.privacy==1:
-            f=Friends.query.filter_by(friends=p.register_id,register_id=current_user.id)
-            if not f:
-                posts.remove(p)
-        elif p.privacy==3:
-            if p.register_id != current_user.id:
-                posts.remove(p)
-    users=[]
-    images=[]
-    images_posts=[]
-    for p in posts:
-        reg=Register.query.filter_by(id=p.register_id).first()
-        users.append(reg)
-        images.append( b64encode(reg.photo).decode("utf-8"))
-        if p.image:
-            images_posts.append(b64encode(p.image).decode("utf-8"))
-        else:
-            images_posts.append("")
-    return render_template('home/index.html',
-                           title='home',
-                           posts=posts,
-                           current_user_id=current_user.id,
-                           users=users,
-                           images_users=images,
-                           images_posts=images_posts
-                           )
+    if current_user.is_authenticated:
+        posts=Post.query.all()
+        for p in posts:
+            if p.privacy==1:
+                f=Friends.query.filter_by(friends=p.register_id,register_id=current_user.id)
+                if not f:
+                    posts.remove(p)
+            elif p.privacy==3:
+                if p.register_id != current_user.id:
+                    posts.remove(p)
+        users=[]
+        images=[]
+        images_posts=[]
+        for p in posts:
+            reg=Register.query.filter_by(id=p.register_id).first()
+            users.append(reg)
+            images.append( b64encode(reg.photo).decode("utf-8"))
+            if p.image:
+                images_posts.append(b64encode(p.image).decode("utf-8"))
+            else:
+                images_posts.append("")
+        return render_template('home/index.html',
+                            title='home',
+                            posts=posts,
+                            current_user_id=current_user.id,
+                            users=users,
+                            images_users=images,
+                            images_posts=images_posts
+                            )
+    else:
+        return redirect(url_for('auth.index'))
 
 @home.route("/home_post_friends",methods=["GET"])
 def home_post_friends():
-    posts=Post.query.filter(or_(Post.privacy==1))
-    for p in posts:
-        f=Friends.query.filter_by(friends=p.register_id,register_id=current_user.id)
-        if not f:
-            posts.remove(p)
-    users=[]
-    images=[]
-    images_posts=[]
-    for p in posts:
-        reg=Register.query.filter_by(id=p.register_id).first()
-        users.append(reg)
-        images.append( b64encode(reg.photo).decode("utf-8"))
-        if p.image:
-            images_posts.append(b64encode(p.image).decode("utf-8"))
-        else:
-            images_posts.append("")
-    return render_template('home/index.html',
-                           title='home',
-                           posts=posts,
-                           current_user_id=current_user.id,
-                           users=users,
-                           images_users=images,
-                           images_posts=images_posts
-                           )
+    if current_user.is_authenticated:
+        posts=Post.query.filter(or_(Post.privacy==1))
+        for p in posts:
+            f=Friends.query.filter_by(friends=p.register_id,register_id=current_user.id)
+            if not f:
+                posts.remove(p)
+        users=[]
+        images=[]
+        images_posts=[]
+        for p in posts:
+            reg=Register.query.filter_by(id=p.register_id).first()
+            users.append(reg)
+            images.append( b64encode(reg.photo).decode("utf-8"))
+            if p.image:
+                images_posts.append(b64encode(p.image).decode("utf-8"))
+            else:
+                images_posts.append("")
+        return render_template('home/index.html',
+                            title='home',
+                            posts=posts,
+                            current_user_id=current_user.id,
+                            users=users,
+                            images_users=images,
+                            images_posts=images_posts
+                            )
+    else:
+        return redirect(url_for('auth.index'))
+                           
 
 @home.route("/logout")
 def logout():
@@ -182,13 +195,18 @@ def search():
     if current_user.is_authenticated:
         keyword = request.form.get('search')
         results=Register.query.filter(or_(Register.fName.like("%"+keyword+"%"),Register.lName.like("%"+keyword+"%"))).all()
+        images=[]
         for r in results:
             req=Requests.query.filter_by(recive=r.id).first()
             if req:
                 results.remove(r)
+            else:
+                images.append(b64encode(r.photo).decode("utf-8"))
         if current_user in results:
             results.remove(current_user)
-        return render_template('home/friends_search.html',title='home',search=results)
+            if b64encode(r.photo).decode("utf-8") in images:
+                images.remove(b64encode(r.photo).decode("utf-8"))
+        return render_template('home/friends_search.html',title='home',search=results,images=images)
     else:
         return redirect(url_for('auth.index'))
 
@@ -201,6 +219,11 @@ def send():
             db.session.add(req)
             db.session.commit()
         flash('you send request to friend', 'success')
+        socketio.emit("reply",
+            id+"#"+
+            current_user.__str__()+"#"+
+            "send to you friend request#"+keys['public']
+        )
         return redirect(url_for('home.home_page'))
      else:
         return redirect(url_for('auth.index'))
@@ -210,9 +233,12 @@ def requests():
     if current_user.is_authenticated:
         results=Requests.query.filter_by(recive=current_user.id,status=0)
         friends=[]
+        images=[]
         for r in results:
-            friends.append(Register.query.filter_by(id=r.send).first())
-        return render_template('home/friends_request.html',title='friends',requests=results,friends=friends)
+            re=Register.query.filter_by(id=r.send).first()
+            friends.append(re)
+            images.append(b64encode(re.photo).decode("utf-8"))
+        return render_template('home/friends_request.html',title='friends',requests=results,friends=friends,images=images)
     else:
         return redirect(url_for('auth.index'))
 
@@ -317,3 +343,31 @@ def update_profile():
             return redirect(url_for('home.profile')) 
     else:
         return redirect(url_for('auth.index')) 
+
+@app.route("/push.js")
+def sw():
+  response = make_response(send_from_directory(app.static_folder, "js/push.js"))
+  return response   
+
+@app.route("/push", methods=["POST"])
+def push():
+  sub = json.loads(request.form["sub"])
+  result = "OK"
+  try:
+    webpush(
+      subscription_info = sub,
+      data = json.dumps({
+        "title" : request.form["title"],
+        "body" : request.form["body"],
+        "icon" : "static/images/social.png",
+        "image" : "static/images/social.png"
+      }),
+      vapid_private_key = VAPID_PRIVATE,
+      vapid_claims = { "sub": VAPID_SUBJECT }
+    )
+  except WebPushException as ex:
+    result = "FAILED"
+  return result
+
+    
+

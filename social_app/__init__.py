@@ -6,6 +6,9 @@ from flask_mail import Mail
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_socketio import SocketIO, emit
+import base64
+import ecdsa
+
 bcrypt = Bcrypt()
 
 app = Flask(__name__)
@@ -28,6 +31,12 @@ convention = {
     "ck": "ck_%(table_name)s_%(constraint_name)s",
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
     "pk": "pk_%(table_name)s"
+}
+pri = ecdsa.SigningKey.generate(curve=ecdsa.NIST256p)
+pub = pri.get_verifying_key()
+keys = {
+  "private" : base64.urlsafe_b64encode(pri.to_string()).decode("utf-8").strip("="),
+  "public" : base64.urlsafe_b64encode(b"\x04" + pub.to_string()).decode("utf-8").strip("=")
 }
 metadata = MetaData(naming_convention=convention)
 db = SQLAlchemy(app,metadata=metadata)
