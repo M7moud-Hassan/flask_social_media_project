@@ -90,11 +90,14 @@ def send_email(to, subject, template):
 
 @home.route("/home_page",methods=["GET","POST"])
 def home_page():
-    posts=Post.query.filter(or_(Post.privacy==1,Post.privacy==2))
+    posts=Post.query.all()
     for p in posts:
         if p.privacy==1:
             f=Friends.query.filter_by(friends=p.register_id,register_id=current_user.id)
             if not f:
+                posts.remove(p)
+        elif p.privacy==3:
+            if p.register_id != current_user.id:
                 posts.remove(p)
     users=[]
     images=[]
@@ -286,3 +289,31 @@ def profile():
        return render_template('home/profile.html',title='profile',images_user=image)
     else:
        return redirect(url_for('auth.index')) 
+
+@home.route("/update_profile",methods=['POST','GET'])
+def update_profile():
+    if current_user.is_authenticated:
+        with app.app_context():
+            current_user.fName=request.form.get('fName')
+            current_user.lName=request.form.get('lName')
+            current_user.mobile_number=request.form.get('phone')
+            current_user.address1=request.form.get('address1')
+            current_user.address2=request.form.get('address2')
+            current_user.education=request.form.get('education')
+            current_user.state=request.form.get('state')
+            current_user.Country=request.form.get('country')
+            current_user.postcode=request.form.get('postcode')
+            pic=request.files['photo']
+            if pic:
+                current_user.photo=pic.read()
+            password=request.form.get('password')
+            if password:
+                confirm_password=request.form.get('confirm_password')
+                if password==confirm_password:
+                    current_user.password=hash_password = bcrypt.generate_password_hash(password).decode('utf8')
+                else:
+                    flash('confirm password not equal to confirm password ','danger')
+            db.session.commit()
+            return redirect(url_for('home.profile')) 
+    else:
+        return redirect(url_for('auth.index')) 

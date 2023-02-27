@@ -75,3 +75,5 @@ class PostForm(FlaskForm):
 	submit = SubmitField(
 		'Push'
 	)
+
+    

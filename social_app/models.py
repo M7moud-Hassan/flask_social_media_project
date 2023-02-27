@@ -14,13 +14,13 @@ class Register(db.Model,UserMixin):
     password = db.Column(db.String(200), nullable=False)
     photo = db.Column(db.Text,nullable=False)
     posts = db.relationship('Post', backref='author', lazy=True)
-    mobile_number=db.Column(db.String(11))
-    address1=db.Column(db.String(50))
-    address2=db.Column(db.String(50))
-    postcode=db.Column(db.String(10))
-    state=db.Column(db.String(20))
-    Country=db.Column(db.String(20))
-    education=db.Column(db.String(20))
+    mobile_number=db.Column(db.String(11),default="")
+    address1=db.Column(db.String(50),default="")
+    address2=db.Column(db.String(50),default="")
+    postcode=db.Column(db.String(10),default="")
+    state=db.Column(db.String(20),default="")
+    Country=db.Column(db.String(20),default="")
+    education=db.Column(db.String(20),default="")
 
     def __repr__(self):
 	    return f"{self.fName} {self.lName}"
