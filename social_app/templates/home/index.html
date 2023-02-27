@@ -24,10 +24,15 @@
           </button>
          
           <div class="dropdown-menu dropdown-scale dropdown-menu-right" role="menu" style="position: absolute; transform: translate3d(-136px, 28px, 0px); top: 0px; left: 0px; will-change: transform;">
-
-           <a class="dropdown-item" href="#">Hide post</a>
-           <a class="dropdown-item" href="#">Stop following</a>
-           <a class="dropdown-item" href="#">Report</a>
+           <form action="{{url_for('home.update_post')}}" method="post">
+            <input type="hidden" name="id" value="{{p.id}}">
+            <input class="dropdown-item" value="update post" post type="submit"/>
+        </form>
+        <form action="{{url_for('home.delete_post')}}" method="post">
+            <input type="hidden" name="id" value="{{p.id}}">
+            <input class="dropdown-item" value="delete post" post type="submit"/>
+        </form>
+          
           </div>
          
          </div><!--/ dropdown -->
@@ -48,7 +53,7 @@
         </div><!--/ cardbox-item -->
        
         <div>
-         <p class="text-dark text-center">djjjjjjjjjjjjjjjalzmsxmdmmdmd,d,cdmdfmdfklkdkdkkdkriirurjfmfc m mcmckcmmcncfndmmcncn</p>
+         <p class="text-dark text-center mt-2 mb-2">{{p.des}}</p>
         </div><!--/ cardbox-like -->			  
                
        </div><!--/ cardbox -->

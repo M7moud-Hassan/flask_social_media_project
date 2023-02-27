@@ -163,7 +163,8 @@ def add_post():
                     post=Post(des=form.des.data,privacy=form.privacy.data,register_id=current_user.id)
                     db.session.add(post)
                     db.session.commit()
-        socketio.emit("reply", "emit successful")
+                return redirect(url_for('home.home_page'))
+       # socketio.emit("reply", "emit successful")
         return render_template('post/add_post.html',title='add post',form=form)
     else:
         return redirect(url_for('auth.index'))
@@ -241,4 +242,39 @@ def reject():
     else:
         return redirect(url_for('auth.index'))
 
-
+@home.route("/update_post",methods=["POST"])
+def update_post():
+    if current_user.is_authenticated:
+        form=PostForm()
+        id = request.form.get('id')
+        post=Post.query.filter_by(id=id).first()
+        if form.validate_on_submit():
+            with app.app_context():
+                id = request.form.get('id')
+                post=Post.query.filter_by(id=id).first()
+                post.des=form.des.data
+                post.privacy=form.privacy.data
+                pic=request.files['photo']
+                if pic:
+                    post.image=pic.read()
+                db.session.commit()
+                flash('update successfull', 'success')
+                return redirect(url_for('home.home_page'))
+        else:
+            return render_template('post/update_post.html',title='add post',form=form,post=post)
+       
+    else:
+        return redirect(url_for('auth.index'))
+    
+@home.route("/delete_post",methods=["POST"])
+def delete_post():
+    if current_user.is_authenticated:
+        id = request.form.get('id')
+        post=Post.query.filter_by(id=id).first()
+        if post:
+            db.session.delete(post)
+            db.session.commit()
+            flash('delete successfull', 'success')
+            return redirect(url_for('home.home_page'))
+    else:
+            return render_template('post/update_post.html',title='add post',form=form,post=post)
