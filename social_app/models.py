@@ -24,3 +24,14 @@ class Post(db.Model):
 	des= db.Column(db.String(500),nullable=True)
 	privacy=db.Column(db.Integer,nullable=False)
 	register_id = db.Column(db.db.Integer, db.ForeignKey('register.id'), nullable=False)
+	
+class Requests(db.Model):
+	id=db.Column(db.Integer,primary_key=True)
+	recive = db.Column(db.Integer,nullable=False)
+	status=db.Column(db.Integer,default=0)
+	send = db.Column(db.db.Integer, db.ForeignKey('register.id'), nullable=False)
+	
+class Friends(db.Model):
+	id=db.Column(db.Integer,primary_key=True)
+	friends=db.Column(db.Integer,nullable=False)
+	register_id = db.Column(db.db.Integer, db.ForeignKey('register.id'), nullable=False)

@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+{% block style %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/friends_search.css') }}">
+{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>friends requests</h1>
+    {% for f in friends %}
+    <div>
+    <img src="https://img.freepik.com/free-icon/important-person_318-10744.jpg?w=2000"  class="rounded" alt="Cinque Terre"/>
+    <span>{{f}}</span>
+    <form style="display: inline;" class="mr-2" action="{{ url_for('home.reject') }}" method="post">
+    <input type="hidden" value="{{f.id}}" name="id">
+    <input type="submit" class="btn btn-danger float-right  ml-4"  value="reject request"/>
+</form>
+    <form style="display: inline;"  action="{{ url_for('home.accept') }}" method="post">
+        <input type="hidden" value="{{f.id}}" name="id">
+        <input type="submit" class="btn btn-primary float-right "  value="accept request"/>
+    </form>
+  
+</div>
+    {% endfor %}
+</div>
+<div style="height: 200px;"></div>
+{% endblock %}

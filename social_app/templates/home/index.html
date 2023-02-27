@@ -6,6 +6,7 @@
 {% endblock %}
 {%block content%}
 
+{% for p in posts %}
 <section class="hero">
     <div class="container">
      <div class="row">	
@@ -16,78 +17,38 @@
         
         <div class="cardbox-heading">
          <!-- START dropdown-->
+         {% if current_user.id == p.register_id %}
          <div class="dropdown float-right">
           <button class="btn btn-flat btn-flat-icon" type="button" data-toggle="dropdown" aria-expanded="false">
            <em class="fa fa-ellipsis-h"></em>
           </button>
-          <div class="dropdown-menu dropdown-scale dropdown-menu-right" role="menu" style="position: absolute; transform: translate3d(-136px, 28px, 0px); top: 0px; left: 0px; will-change: transform;">
-           <a class="dropdown-item" href="#">Hide post</a>
-           <a class="dropdown-item" href="#">Stop following</a>
-           <a class="dropdown-item" href="#">Report</a>
-          </div>
-         </div><!--/ dropdown -->
-         <div class="media m-0">
-          <div class="d-flex mr-3">
-           <a href=""><img class="img-fluid rounded-circle" src="http://www.themashabrand.com/templates/bootsnipp/post/assets/img/users/4.jpg" alt="User"></a>
-          </div>
-          <div class="media-body">
-           <p class="m-0">Benjamin Robinson</p>
-           <small><span><i class="icon ion-md-time"></i> 10 hours ago</span></small>
-          </div>
-         </div><!--/ media -->
-        </div><!--/ cardbox-heading -->
          
-        <div class="cardbox-item">
-         <img class="img-fluid" src="http://www.themashabrand.com/templates/bootsnipp/post/assets/img/1.jpg" alt="Image">
-        </div><!--/ cardbox-item -->
-       
-        <div>
-         <p class="text-dark">djjjjjjjjjjjjjjjalzmsxmdmmdmd,d,cdmdfmdfklkdkdkkdkriirurjfmfc m mcmckcmmcncfndmmcncn</p>
-        </div><!--/ cardbox-like -->			  
-               
-       </div><!--/ cardbox -->
-      </div><!--/ col-lg-6 -->	
-     </div><!--/ row -->
-    </div><!--/ container -->
-   </section>
+          <div class="dropdown-menu dropdown-scale dropdown-menu-right" role="menu" style="position: absolute; transform: translate3d(-136px, 28px, 0px); top: 0px; left: 0px; will-change: transform;">
 
-   <section class="hero">
-    <div class="container">
-     <div class="row">	
-     
-      <div class="col-lg-6 offset-lg-3">
-       
-       <div class="cardbox shadow-lg bg-white">
-        
-        <div class="cardbox-heading">
-         <!-- START dropdown-->
-         <div class="dropdown float-right">
-          <button class="btn btn-flat btn-flat-icon" type="button" data-toggle="dropdown" aria-expanded="false">
-           <em class="fa fa-ellipsis-h"></em>
-          </button>
-          <div class="dropdown-menu dropdown-scale dropdown-menu-right" role="menu" style="position: absolute; transform: translate3d(-136px, 28px, 0px); top: 0px; left: 0px; will-change: transform;">
            <a class="dropdown-item" href="#">Hide post</a>
            <a class="dropdown-item" href="#">Stop following</a>
            <a class="dropdown-item" href="#">Report</a>
           </div>
+         
          </div><!--/ dropdown -->
+         {%endif%}
          <div class="media m-0">
           <div class="d-flex mr-3">
-           <a href=""><img class="img-fluid rounded-circle" src="http://www.themashabrand.com/templates/bootsnipp/post/assets/img/users/4.jpg" alt="User"></a>
+           <a href=""><img class="img-fluid rounded-circle" src="data:image/*;charset=utf-8;base64,{{ images_users[loop.index0] }}" alt="User"></a>
           </div>
           <div class="media-body">
-           <p class="m-0">Benjamin Robinson</p>
-           <small><span><i class="icon ion-md-time"></i> 10 hours ago</span></small>
+           <p class="m-0">{{users[loop.index0]}}</p>
+           <!--<small><span><i class="icon ion-md-time"></i> 10 hours ago</span></small>-->
           </div>
          </div><!--/ media -->
         </div><!--/ cardbox-heading -->
          
         <div class="cardbox-item">
-         <img class="img-fluid" src="http://www.themashabrand.com/templates/bootsnipp/post/assets/img/1.jpg" alt="Image">
+         <img class="img-fluid" style="width:100%" src="data:image/*;charset=utf-8;base64,{{ images_posts[loop.index0] }}" alt="">
         </div><!--/ cardbox-item -->
        
         <div>
-         <p class="text-dark">djjjjjjjjjjjjjjjalzmsxmdmmdmd,d,cdmdfmdfklkdkdkkdkriirurjfmfc m mcmckcmmcncfndmmcncn</p>
+         <p class="text-dark text-center">djjjjjjjjjjjjjjjalzmsxmdmmdmd,d,cdmdfmdfklkdkdkkdkriirurjfmfc m mcmckcmmcncfndmmcncn</p>
         </div><!--/ cardbox-like -->			  
                
        </div><!--/ cardbox -->
@@ -95,6 +56,7 @@
      </div><!--/ row -->
     </div><!--/ container -->
    </section>
+{%endfor%}
 <button  type="button" class="btn btn-primary btn-lg" style="position:fixed; bottom:20px;right:20px; z-index:10;">
     <a href="{{ url_for('home.add_post') }}" class="visually-hidden text-light">Add Post</a>
   </button>
