@@ -99,13 +99,15 @@ def send_email(to, subject, template):
 def home_page():
     if current_user.is_authenticated:
         posts=Post.query.all()
-        post_filter=[]    
+        post_filter=[]
         for p in posts:
             if p.privacy==1:
                 f=Friends.query.filter_by(friends=p.register_id,register_id=current_user.id).first()
                 if f:
                     post_filter.append(p)
                 elif Friends.query.filter_by(friends=current_user.id,register_id=p.register_id).first():
+                    post_filter.append(p)
+                elif p.register_id==current_user.id:
                     post_filter.append(p)
             elif p.privacy==2:
                 post_filter.append(p)
@@ -433,23 +435,25 @@ def see_profile():
             register=Register.query.filter_by(id=id).first()
             if register == current_user:
                 return redirect(url_for('home.profile'))  
-            posts=[]
-            images_user=b64encode(register.photo).decode("utf-8")
-            images=[]
-            check_friend=Friends.query.filter_by(register_id=current_user.id,friends=id)
-            check_friend_2=Friends.query.filter_by(register_id=id,friends=current_user.id)
-            if check_friend or check_friend_2:
-                for p in register.posts:
-                    if p.privacy != 3:
-                        posts.append(p)
-                        images.append(b64encode(p.image).decode("utf-8"))
+            if register:
+                posts=[]
+                images_user=b64encode(register.photo).decode("utf-8")
+                images=[]
+                check_friend=Friends.query.filter_by(register_id=current_user.id,friends=id)
+                check_friend_2=Friends.query.filter_by(register_id=id,friends=current_user.id)
+                if check_friend or check_friend_2:
+                    for p in register.posts:
+                        if p.privacy != 3:
+                            posts.append(p)
+                            images.append(b64encode(p.image).decode("utf-8"))
+                else:
+                    for p in register.posts:
+                        if p.privacy == 2:
+                            posts.append(p)
+                            images.append(b64encode(p.image).decode("utf-8"))
+                return render_template('home/see_profile.html',title='home',images_user=images_user,images_posts=images,posts=posts,user=register)  
             else:
-                for p in register.posts:
-                    if p.privacy == 2:
-                        posts.append(p)
-                        images.append(b64encode(p.image).decode("utf-8"))
-            return render_template('home/see_profile.html',title='home',images_user=images_user,images_posts=images,posts=posts,user=register)  
-
+                 return redirect(url_for('auth.index'))          
     else:
         return redirect(url_for('auth.index')) 
 
