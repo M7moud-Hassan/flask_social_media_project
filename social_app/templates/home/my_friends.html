@@ -7,7 +7,7 @@
     <h1>my frends</h1>
     {% for f in friends%}
     <div class="container">
-        <img src="data:image/*;charset=utf-8;base64,{{ images[loop.index0] }}"  class="rounded-circle mt-4" alt="Cinque Terre"/>
+        <a href="{{url_for('home.see_profile',id=f.id)}}"><img src="data:image/*;charset=utf-8;base64,{{ images[loop.index0] }}"  class="rounded-circle mt-4" alt="Cinque Terre"/></a>
         <span>{{f}}</span>
     </div>
     {% endfor %}

@@ -7,7 +7,7 @@
     <h1>friends requests</h1>
     {% for f in friends %}
     <div>
-    <img src="data:image/*;charset=utf-8;base64,{{ images[loop.index0] }}"   class="rounded-circle" alt="Cinque Terre"/>
+    <a href="{{url_for('home.see_profile',id=f.id)}}"><img src="data:image/*;charset=utf-8;base64,{{ images[loop.index0] }}"   class="rounded-circle" alt="Cinque Terre"/></a>
     <span>{{f}}</span>
     <form style="display: inline;" class="mr-2" action="{{ url_for('home.reject') }}" method="post">
     <input type="hidden" value="{{f.id}}" name="id">

@@ -425,3 +425,31 @@ def my_friends():
     else:
         return redirect(url_for('auth.index')) 
 
+@home.route("/see_profile",methods=["GET","POST"])
+def see_profile():
+    if current_user.is_authenticated:
+        with app.app_context():
+            id = request.args.get('id', None)
+            register=Register.query.filter_by(id=id).first()
+            if register == current_user:
+                return redirect(url_for('home.profile'))  
+            posts=[]
+            images_user=b64encode(register.photo).decode("utf-8")
+            images=[]
+            check_friend=Friends.query.filter_by(register_id=current_user.id,friends=id)
+            check_friend_2=Friends.query.filter_by(register_id=id,friends=current_user.id)
+            if check_friend or check_friend_2:
+                for p in register.posts:
+                    if p.privacy != 3:
+                        posts.append(p)
+                        images.append(b64encode(p.image).decode("utf-8"))
+            else:
+                for p in register.posts:
+                    if p.privacy == 2:
+                        posts.append(p)
+                        images.append(b64encode(p.image).decode("utf-8"))
+            return render_template('home/see_profile.html',title='home',images_user=images_user,images_posts=images,posts=posts,user=register)  
+
+    else:
+        return redirect(url_for('auth.index')) 
+
