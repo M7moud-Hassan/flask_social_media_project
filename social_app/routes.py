@@ -1,4 +1,5 @@
 import json
+from operator import and_
 from flask import  make_response, render_template, send_from_directory, url_for, redirect, flash,Blueprint,request
 from .forms import LoginForm,RegisterForm,PostForm
 from social_app import app,db,mail,bcrypt,socketio,emit
@@ -98,18 +99,24 @@ def send_email(to, subject, template):
 def home_page():
     if current_user.is_authenticated:
         posts=Post.query.all()
+        post_filter=[]    
         for p in posts:
             if p.privacy==1:
-                f=Friends.query.filter_by(friends=p.register_id,register_id=current_user.id)
-                if not f:
-                    posts.remove(p)
-            elif p.privacy==3:
-                if p.register_id != current_user.id:
-                    posts.remove(p)
+                f=Friends.query.filter_by(friends=p.register_id,register_id=current_user.id).first()
+                if f:
+                    post_filter.append(p)
+                elif Friends.query.filter_by(friends=current_user.id,register_id=p.register_id).first():
+                    post_filter.append(p)
+            elif p.privacy==2:
+                post_filter.append(p)
+            else:
+                if p.register_id==current_user.id:
+                    post_filter.append(p)                   
+                    
         users=[]
         images=[]
         images_posts=[]
-        for p in posts:
+        for p in post_filter:
             reg=Register.query.filter_by(id=p.register_id).first()
             users.append(reg)
             images.append( b64encode(reg.photo).decode("utf-8"))
@@ -119,7 +126,7 @@ def home_page():
                 images_posts.append("")
         return render_template('home/index.html',
                             title='home',
-                            posts=posts,
+                            posts=post_filter,
                             current_user_id=current_user.id,
                             users=users,
                             images_users=images,
@@ -131,15 +138,19 @@ def home_page():
 @home.route("/home_post_friends",methods=["GET"])
 def home_post_friends():
     if current_user.is_authenticated:
-        posts=Post.query.filter(or_(Post.privacy==1))
+        posts=Post.query.filter(and_(Post.privacy==1,Post.register_id!=current_user.id))
+        post_filter=[]
         for p in posts:
-            f=Friends.query.filter_by(friends=p.register_id,register_id=current_user.id)
-            if not f:
-                posts.remove(p)
+            f=Friends.query.filter_by(friends=p.register_id,register_id=current_user.id).first()
+            if f:
+                post_filter.append(p)
+            elif Friends.query.filter_by(friends=current_user.id,register_id=p.register_id).first():
+                post_filter.append(p)
+            
         users=[]
         images=[]
         images_posts=[]
-        for p in posts:
+        for p in post_filter:
             reg=Register.query.filter_by(id=p.register_id).first()
             users.append(reg)
             images.append( b64encode(reg.photo).decode("utf-8"))
@@ -149,7 +160,7 @@ def home_post_friends():
                 images_posts.append("")
         return render_template('home/index.html',
                             title='home',
-                            posts=posts,
+                            posts=post_filter,
                             current_user_id=current_user.id,
                             users=users,
                             images_users=images,
@@ -197,8 +208,10 @@ def search():
         results=Register.query.filter(or_(Register.fName.like("%"+keyword+"%"),Register.lName.like("%"+keyword+"%"))).all()
         images=[]
         for r in results:
-            req=Requests.query.filter_by(recive=r.id).first()
+            req=Requests.query.filter_by(recive=r.id,send=current_user.id).first()
             if req:
+                results.remove(r)
+            elif Requests.query.filter_by(recive=current_user.id,send=r.id).first():
                 results.remove(r)
             else:
                 images.append(b64encode(r.photo).decode("utf-8"))
@@ -222,7 +235,7 @@ def send():
         socketio.emit("reply",
             id+"#"+
             current_user.__str__()+"#"+
-            "send to you friend request#"+keys['public']
+            "send to you friend request"
         )
         return redirect(url_for('home.home_page'))
      else:
@@ -247,12 +260,17 @@ def accept():
     if current_user.is_authenticated:
         id = request.form.get('id')
         with app.app_context():
-            req=Requests.query.filter_by(send=current_user.id,recive=id,status=0).first()
+            req=Requests.query.filter_by(recive=current_user.id,send=id,status=0).first()
             req.status=1
             friend=Friends(register_id=current_user.id,friends=id)
             db.session.add(friend)
             db.session.commit()
             flash('you accept request', 'success')
+            socketio.emit("reply",
+            id+"#"+
+            current_user.__str__()+"#"+
+            "accept your request"
+        )
             return redirect(url_for('home.requests'))
     else:
         return redirect(url_for('auth.index'))
@@ -267,6 +285,11 @@ def reject():
             db.session.delete(req)
             db.session.commit()
             flash('you reject request', 'success')
+            socketio.emit("reply",
+            id+"#"+
+            current_user.__str__()+"#"+
+            "reject your request"
+        )
             return redirect(url_for('home.requests'))
     else:
         return redirect(url_for('auth.index'))
