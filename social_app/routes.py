@@ -392,5 +392,36 @@ def push():
     result = "FAILED"
   return result
 
-    
+@home.route("/my_post")
+def my_posts():
+    if current_user.is_authenticated:
+        with app.app_context():
+            image=b64encode(current_user.photo).decode("utf-8")
+            posts=current_user.posts
+            images_posts=[]
+            for p in posts:
+                images_posts.append(b64encode(p.image).decode("utf-8"))
+            return render_template('home/profile.html',title='profile',images_user=image,images_posts=images_posts,posts=posts)  
+    else:
+        return redirect(url_for('auth.index')) 
+
+@home.route("/my_friends")
+def my_friends():
+    if current_user.is_authenticated:
+        with app.app_context():
+            my_friends=[]
+            friends=Friends.query.filter_by(register_id=current_user.id)
+            images=[]
+            for f in friends:
+                re=Register.query.filter_by(id=f.friends).first()
+                images.append(b64encode(re.photo).decode("utf-8"))
+                my_friends.append(re)
+            friends_2=Friends.query.filter_by(friends=current_user.id)
+            for f in friends_2:
+                re=Register.query.filter_by(id=f.register_id).first()
+                images.append(b64encode(re.photo).decode("utf-8"))
+                my_friends.append(re)
+            return render_template('home/my_friends.html',title='home',friends=my_friends,images=images)  
+    else:
+        return redirect(url_for('auth.index')) 
 

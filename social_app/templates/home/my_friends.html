@@ -1,0 +1,16 @@
+{% extends 'layout.html' %}
+{% block style %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/friends_search.css') }}">
+{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>my frends</h1>
+    {% for f in friends%}
+    <div class="container">
+        <img src="data:image/*;charset=utf-8;base64,{{ images[loop.index0] }}"  class="rounded-circle mt-4" alt="Cinque Terre"/>
+        <span>{{f}}</span>
+    </div>
+    {% endfor %}
+</div>
+<div style="height: 200px;"></div>
+{% endblock %}
