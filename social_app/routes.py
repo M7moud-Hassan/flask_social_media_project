@@ -209,6 +209,7 @@ def search():
         keyword = request.form.get('search')
         results=Register.query.filter(or_(Register.fName.like("%"+keyword+"%"),Register.lName.like("%"+keyword+"%"))).all()
         images=[]
+        results_app=[]
         for r in results:
             req=Requests.query.filter_by(recive=r.id,send=current_user.id).first()
             if req:
@@ -216,12 +217,10 @@ def search():
             elif Requests.query.filter_by(recive=current_user.id,send=r.id).first():
                 results.remove(r)
             else:
-                images.append(b64encode(r.photo).decode("utf-8"))
-        if current_user in results:
-            results.remove(current_user)
-            if b64encode(r.photo).decode("utf-8") in images:
-                images.remove(b64encode(r.photo).decode("utf-8"))
-        return render_template('home/friends_search.html',title='home',search=results,images=images)
+                if r.id != current_user.id:
+                    results_app.append(r)
+                    images.append(b64encode(r.photo).decode("utf-8"))
+            return render_template('home/friends_search.html',title='home',search=results_app,images=images)
     else:
         return redirect(url_for('auth.index'))
 
